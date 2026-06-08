@@ -6,6 +6,8 @@ import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import { UserModule } from './user/user.module';
+import { User } from './user/entities/user.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -20,9 +22,9 @@ import { UserModule } from './user/user.module';
       port: 5432,
       username: process.env.POSTGRES_USERNAME,
       password: process.env.POSTGRES_SECRET,
-      database: 'e_commerce', //database name to be configured in pgAdmin
-      entities: [], // Entities needed to be registered in the db
-      synchronize: true, //Only used in development ?? Remove during prod
+      database: 'e_commerce',
+      entities: [User],
+      synchronize: true, // Remove during prod
     }),
 
     // Configure Rate limitting module
@@ -43,6 +45,8 @@ import { UserModule } from './user/user.module';
     }),
 
     UserModule,
+
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
