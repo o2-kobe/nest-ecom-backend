@@ -37,7 +37,7 @@ export class User {
   @Column({ type: 'enum', enum: AuthProvider, default: AuthProvider.LOCAL })
   provider!: AuthProvider;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   googleId?: string;
 
   @Column({ nullable: true, select: false })
