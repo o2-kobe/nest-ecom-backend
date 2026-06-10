@@ -1,8 +1,9 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-google-oauth20';
 import { UserService } from '../../user/user.service';
 
+@Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly userService: UserService) {
     super({
@@ -31,6 +32,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       googleId,
     });
 
-    return user;
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+    };
   }
 }
