@@ -92,10 +92,11 @@ export class UserService {
     }
   }
 
-  async updateRefreshToken(userId: string, hashedRefreshToken: string) {
-    await this.userRepository.update(userId, {
-      refreshToken: hashedRefreshToken,
-    });
+  async updateRefreshToken(userId: string, hashedRefreshToken: string | null) {
+    if (hashedRefreshToken)
+      await this.userRepository.update(userId, {
+        refreshToken: hashedRefreshToken,
+      });
   }
 
   async findById(id: string) {
