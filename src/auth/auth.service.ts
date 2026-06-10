@@ -6,6 +6,7 @@ import { User, UserRole } from '../user/entities/user.entity';
 import bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtPayload } from './strategies/jwt.strategy';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +33,7 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, res: Response) {
     const email = dto.email.trim().toLowerCase();
 
     const user = await this.userService.findLocalUserByEmail(email);
@@ -42,9 +43,10 @@ export class AuthService {
 
     const tokens = await this.issueTokens(user);
 
+    this.setAuthCookies(res, tokens);
+
     return {
       user: this.sanitizeUser(user),
-      ...tokens,
     };
   }
 
@@ -70,7 +72,7 @@ export class AuthService {
     return this.issueTokens(user);
   }
 
-  private async issueTokens(user: User) {
+  async issueTokens(user: User) {
     const accessToken = this.generateAccessToken(user);
     const refreshToken = this.generateRefreshToken(user);
 
@@ -79,6 +81,32 @@ export class AuthService {
     await this.userService.updateRefreshToken(user.id, hashedRefreshToken);
 
     return { accessToken, refreshToken };
+  }
+
+  setAuthCookies(
+    res: Response,
+    tokens: { accessToken: string; refreshToken: string },
+  ) {
+    res.cookie('access_token', tokens.accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie('refresh_token', tokens.refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+  }
+
+  async clearCookiesAndTokens(userId: string, res: Response) {
+    await this.userService.updateRefreshToken(userId, null);
+
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
   }
 
   private generateAccessToken(user: User) {
@@ -107,7 +135,7 @@ export class AuthService {
     );
   }
 
-  private sanitizeUser(user: User) {
+  sanitizeUser(user: User) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, refreshToken, ...safeUser } = user;
 
