@@ -1,12 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
-
+import cookieParser from 'cookie-parser';
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'debug', 'log', 'warn', 'verbose'],
-  });
+  const app = await NestFactory.create(AppModule);
+
+  app.setGlobalPrefix('api');
 
   // Global Pipe validation for App
   app.useGlobalPipes(
@@ -17,7 +16,7 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalInterceptors(new LoggingInterceptor());
+  app.use(cookieParser());
 
   await app.listen(process.env.PORT ?? 3000);
 }
