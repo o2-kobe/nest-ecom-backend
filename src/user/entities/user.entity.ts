@@ -1,9 +1,12 @@
 import {
   Column,
   CreateDateColumn,
+  Entity,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Address } from '../../address/entities/address.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -15,6 +18,7 @@ export enum AuthProvider {
   GOOGLE = 'google',
 }
 
+@Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -45,6 +49,9 @@ export class User {
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role!: UserRole;
+
+  @OneToOne(() => Address, (address) => address.user)
+  address!: Address;
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -8,6 +8,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
+import { AddressModule } from './address/address.module';
+import { Address } from './address/entities/address.entity';
 
 @Module({
   imports: [
@@ -23,7 +25,7 @@ import { AuthModule } from './auth/auth.module';
       username: process.env.POSTGRES_USERNAME,
       password: process.env.POSTGRES_SECRET,
       database: 'e_commerce',
-      entities: [User],
+      entities: [User, Address],
       synchronize: true, // Remove during prod
     }),
 
@@ -47,6 +49,8 @@ import { AuthModule } from './auth/auth.module';
     UserModule,
 
     AuthModule,
+
+    AddressModule,
   ],
   controllers: [AppController],
   providers: [AppService],
