@@ -2,6 +2,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -50,8 +52,12 @@ export class User {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role!: UserRole;
 
-  @OneToOne(() => Address, (address) => address.user)
-  address!: Address;
+  @OneToMany(() => Address, (address) => address.user)
+  addresses!: Address[];
+
+  @OneToOne(() => Address, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn()
+  defaultAddress!: Address | null;
 
   @CreateDateColumn()
   createdAt!: Date;

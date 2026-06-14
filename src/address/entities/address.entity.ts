@@ -2,7 +2,7 @@ import {
   Column,
   Entity,
   JoinTable,
-  OneToOne,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
@@ -12,9 +12,9 @@ export class Address {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @OneToOne(() => User, (user) => user.address)
+  @ManyToOne(() => User, (user) => user.addresses)
   @JoinTable()
-  user?: User;
+  user!: User;
 
   @Column()
   country!: string;
