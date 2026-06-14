@@ -32,22 +32,22 @@ export class User {
   lastName!: string;
 
   @Column({ nullable: true })
-  avatar?: string;
+  avatar!: string | null;
 
   @Column({ unique: true })
   email!: string;
 
   @Column({ nullable: true, select: false })
-  password?: string;
+  password!: string | null;
 
   @Column({ type: 'enum', enum: AuthProvider, default: AuthProvider.LOCAL })
   provider!: AuthProvider;
 
   @Column({ nullable: true, select: false })
-  googleId?: string;
+  googleId!: string | null;
 
   @Column({ nullable: true, select: false })
-  refreshToken?: string;
+  refreshToken!: string | null;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role!: UserRole;
