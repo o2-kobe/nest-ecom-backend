@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -10,6 +11,7 @@ import bcrypt from 'bcrypt';
 import { AuthProvider, User, UserRole } from './entities/user.entity';
 import { QueryFailedError, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
+import { AddressService } from '../address/address.service';
 
 type PostgresError = QueryFailedError & { code?: string };
 
@@ -17,9 +19,10 @@ type PostgresError = QueryFailedError & { code?: string };
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private readonly addressService: AddressService,
   ) {}
 
-  async createUser(dto: CreateUserDto, role: UserRole) {
+  async createUser(dto: CreateUserDto, role: UserRole): Promise<User> {
     const email = dto.email.trim().toLowerCase();
 
     const existingUser = await this.findByEmail(email);
@@ -58,7 +61,7 @@ export class UserService {
     return safeUser;
   }
 
-  async findOrCreateOAuthUser(dto: CreateUserDto) {
+  async findOrCreateOAuthUser(dto: CreateUserDto): Promise<User> {
     const { email, firstName, lastName, googleId } = dto;
 
     const existingUser = await this.findByEmail(email);
@@ -99,7 +102,7 @@ export class UserService {
       });
   }
 
-  async findById(id: string) {
+  async findById(id: string): Promise<User> {
     const user = await this.userRepository.findOneBy({ id });
 
     if (!user) throw new NotFoundException('User does not exist');
@@ -107,7 +110,7 @@ export class UserService {
     return user;
   }
 
-  async findLocalUserByEmail(email: string) {
+  async findLocalUserByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { email, provider: AuthProvider.LOCAL },
       select: ['id', 'email', 'password', 'role', 'refreshToken'],
@@ -118,11 +121,11 @@ export class UserService {
     return user;
   }
 
-  async findAll() {
+  async findAll(): Promise<User[]> {
     return await this.userRepository.find();
   }
 
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOneBy({ email });
 
     if (!user) throw new NotFoundException('User not found');
@@ -130,9 +133,24 @@ export class UserService {
     return user;
   }
 
-  async deleteUser(userId: string) {
+  async deleteUser(userId: string): Promise<void> {
     const user = await this.findById(userId);
 
     await this.userRepository.remove(user);
+  }
+
+  // Set Default Address
+  async setDefaultAddress(userId: string, addressId: string): Promise<User> {
+    const address = await this.addressService.findById(addressId);
+
+    if (address.user.id !== userId) {
+      throw new ForbiddenException('You can only update your own profile');
+    }
+
+    await this.userRepository.update(userId, {
+      defaultAddress: { id: addressId },
+    });
+
+    return this.findById(userId);
   }
 }
