@@ -10,6 +10,8 @@ import { User } from './user/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { AddressModule } from './address/address.module';
 import { Address } from './address/entities/address.entity';
+import { CategoryModule } from './category/category.module';
+import { Category } from './category/entities/category.entity';
 
 @Module({
   imports: [
@@ -25,7 +27,7 @@ import { Address } from './address/entities/address.entity';
       username: process.env.POSTGRES_USERNAME,
       password: process.env.POSTGRES_SECRET,
       database: 'e_commerce',
-      entities: [User, Address],
+      entities: [User, Address, Category],
       synchronize: true, // Remove during prod
     }),
 
@@ -51,6 +53,8 @@ import { Address } from './address/entities/address.entity';
     AuthModule,
 
     AddressModule,
+
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
