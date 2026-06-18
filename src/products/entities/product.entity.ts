@@ -6,6 +6,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   ManyToOne,
+  Index,
 } from 'typeorm';
 import { Category } from '../../category/entities/category.entity';
 
@@ -17,6 +18,7 @@ export class Product {
   @Column({ length: 200 })
   name!: string;
 
+  @Index()
   @Column({ unique: true, length: 250 })
   slug!: string;
 
@@ -45,6 +47,7 @@ export class Product {
   @DeleteDateColumn({ nullable: true })
   deletedAt!: Date | null;
 
+  @Index()
   @CreateDateColumn()
   createdAt!: Date;
 
