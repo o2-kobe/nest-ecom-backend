@@ -6,6 +6,7 @@ import {
   Min,
   MaxLength,
   IsUUID,
+  MinLength,
 } from 'class-validator';
 
 import { Type } from 'class-transformer';
@@ -13,11 +14,13 @@ import { Type } from 'class-transformer';
 export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
+  @MinLength(3)
   @MaxLength(200)
   name!: string;
 
   @IsString()
   @IsNotEmpty()
+  @MinLength(10)
   @MaxLength(5000)
   description!: string;
 
