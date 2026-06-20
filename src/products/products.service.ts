@@ -23,7 +23,11 @@ export class ProductsService {
   ) {}
 
   // Create
-  async create(dto: CreateProductDto): Promise<Product> {
+  async create(dto: CreateProductDto, userRole: UserRole): Promise<Product> {
+    if (userRole !== UserRole.ADMIN) {
+      throw new ForbiddenException('Insufficient permission');
+    }
+
     const category = await this.categoryService.findOne(dto.categoryId);
 
     if (!category) {
@@ -40,7 +44,7 @@ export class ProductsService {
   }
 
   //  FIND ALL
-  async findAll(query: ProductQueryDto, isActive?: boolean) {
+  async findAll(query: ProductQueryDto, userRole: UserRole | 'GUEST') {
     const { page, search, limit, category, sort } = query;
 
     const skip = (page - 1) * limit;
@@ -49,9 +53,9 @@ export class ProductsService {
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category');
 
-    if (typeof isActive === 'boolean') {
-      qb.where('product.isActive = :isActive', {
-        isActive,
+    if (userRole !== UserRole.ADMIN) {
+      qb.andWhere('product.isActive = :isActive', {
+        isActive: true,
       });
     }
 
@@ -89,17 +93,7 @@ export class ProductsService {
     };
   }
 
-  // FIND ALL for customers
-  async findAllPublic(query: ProductQueryDto) {
-    return await this.findAll(query, true);
-  }
-
-  // FIND ALL for ADMIN
-  async findAllAdmin(query: ProductQueryDto) {
-    return await this.findAll(query);
-  }
-
-  // FInd by id
+  // Find Product by id
   async findOne(id: string): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id },
@@ -113,6 +107,7 @@ export class ProductsService {
     return product;
   }
 
+  // Find Product By Slug
   async findBySlug(slug: string): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { slug },
@@ -126,6 +121,7 @@ export class ProductsService {
     return product;
   }
 
+  // Soft Delete Product
   async remove(id: string, userRole: UserRole): Promise<void> {
     if (userRole !== UserRole.ADMIN) {
       throw new ForbiddenException('Insufficient permissions');
@@ -152,7 +148,8 @@ export class ProductsService {
     return this.findOne(id);
   }
 
-  async restoreProduct(id: string, userRole: UserRole) {
+  // Restore Archived Product
+  async restoreAchivedProduct(id: string, userRole: UserRole) {
     if (userRole !== UserRole.ADMIN) {
       throw new ForbiddenException('Insufficient permissions');
     }
@@ -168,6 +165,7 @@ export class ProductsService {
     return this.findOne(id);
   }
 
+  // Restore deleted products
   async restoreDeletedProduct(id: string, userRole: UserRole) {
     if (userRole !== UserRole.ADMIN) {
       throw new ForbiddenException('Insufficient permission');
@@ -182,26 +180,33 @@ export class ProductsService {
     return await this.findOne(id);
   }
 
-  // /////////////////////////
-  async updateProduct(
-    id: string,
-    update: UpdateProductDto,
-    userRole: UserRole,
-  ) {
+  // Update Product
+  async updateProduct({
+    id,
+    update,
+    userRole,
+  }: {
+    id: string;
+    update: UpdateProductDto;
+    userRole: UserRole;
+  }) {
     if (userRole !== UserRole.ADMIN) {
       throw new ForbiddenException('Insufficient permissions.');
     }
 
-    const { name, categoryId, description, price, stock } = update;
+    const product = await this.findOne(id);
+    const { name, description, price, stock, categoryId } = update;
 
     // Verify category
-    const category = await this.categoryService.findOne(categoryId);
+    if (categoryId) {
+      const category = await this.categoryService.findOne(categoryId);
 
-    if (!category) {
-      throw new NotFoundException('Selected category does not exist');
+      if (!category) {
+        throw new NotFoundException('Selected category does not exist');
+      }
+
+      product.category.id = categoryId;
     }
-
-    const product = await this.findOne(id);
 
     if (name) {
       product.slug = this.generateSlug(name);
@@ -222,6 +227,51 @@ export class ProductsService {
     return await this.productRepository.save(product);
   }
 
+  // Find Related Products
+  async findRelatedProducts(productId: string, limit = 6) {
+    const product = await this.findOne(productId);
+
+    const qb = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .where('product.id != :id', { id: productId })
+      .andWhere('product.isActive = :isActive', { isActive: true });
+
+    qb.addSelect(
+      `( 
+       CASE WHEN product.categoryId = :categoryId THEN 10 ELSE 0 END
+       +
+       CASE 
+         WHEN product.name ILIKE :name THEN 8
+         WHEN product.name ILIKE :namePrefix THEN 6
+         ELSE 0
+       END
+       +
+       CASE
+         WHEN ABS(product.price - :price) <= :price * 0.1 THEN 5
+         WHEN ABS(product.price - :price) <= :price * 0.3 THEN 3
+         ELSE 0
+       END
+     )`,
+      'score',
+    );
+
+    qb.setParameters({
+      id: productId,
+      categoryId: product.category.id,
+      name: `%${product.name}%`,
+      namePrefix: `${product.name.split(' ')[0]}%`,
+      price: product.price,
+      isActive: true,
+    });
+
+    qb.orderBy('score', 'DESC')
+      .addOrderBy('product.createdAt', 'DESC')
+      .take(limit);
+
+    return await qb.getMany();
+  }
+
   private generateSlug(productName: string) {
     const suffix = crypto.randomBytes(3).toString('hex');
     const slug = slugify(productName, {
@@ -233,10 +283,3 @@ export class ProductsService {
     return `${slug}-${suffix}`;
   }
 }
-
-/**
- * 
-findFeaturedProducts()
-
-findRelatedProducts(productId)
- */
