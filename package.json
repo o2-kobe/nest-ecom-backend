@@ -38,7 +38,6 @@
     "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
     "express-session": "^1.19.0",
-    "multer": "^2.1.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
@@ -98,6 +97,8 @@
     "testEnvironment": "node"
   },
   "overrides": {
-    "uuid": "^14.0.0"
+    "uuid": "^14.0.0",
+    "js-yaml": "^4.1.0",
+    "multer": "^1.4.5-lts.1"
   }
 }
