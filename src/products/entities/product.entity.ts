@@ -7,8 +7,10 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   Index,
+  OneToOne,
 } from 'typeorm';
 import { Category } from '../../category/entities/category.entity';
+import { Inventory } from '../../inventory/entities/inventory.entity';
 
 @Entity()
 export class Product {
@@ -32,9 +34,6 @@ export class Product {
   })
   price!: number;
 
-  @Column({ default: 0 })
-  stock!: number;
-
   @ManyToOne(() => Category, (category) => category.products, {
     nullable: false,
     onDelete: 'RESTRICT',
@@ -46,6 +45,9 @@ export class Product {
 
   @Column({ default: true })
   isActive!: boolean;
+
+  @OneToOne(() => Inventory, (inventory) => inventory.product)
+  inventory!: Inventory;
 
   @DeleteDateColumn({ nullable: true })
   deletedAt!: Date | null;

@@ -14,6 +14,8 @@ import { CategoryModule } from './category/category.module';
 import { Category } from './category/entities/category.entity';
 import { ProductsModule } from './products/products.module';
 import { Product } from './products/entities/product.entity';
+import { InventoryModule } from './inventory/inventory.module';
+import { Inventory } from './inventory/entities/inventory.entity';
 
 @Module({
   imports: [
@@ -29,7 +31,7 @@ import { Product } from './products/entities/product.entity';
       username: process.env.POSTGRES_USERNAME,
       password: process.env.POSTGRES_SECRET,
       database: 'e_commerce',
-      entities: [User, Address, Category, Product],
+      entities: [User, Address, Category, Product, Inventory],
       synchronize: true, // Remove during prod
     }),
 
@@ -59,6 +61,8 @@ import { Product } from './products/entities/product.entity';
     CategoryModule,
 
     ProductsModule,
+
+    InventoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

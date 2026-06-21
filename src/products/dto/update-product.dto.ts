@@ -34,12 +34,6 @@ export class UpdateProductDto {
   price?: number;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  stock?: number;
-
-  @IsOptional()
   @IsUUID()
   categoryId?: string;
 }

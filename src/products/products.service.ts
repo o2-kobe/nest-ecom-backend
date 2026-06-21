@@ -171,7 +171,7 @@ export class ProductsService {
   // Update Product
   async updateProduct(id: string, update: UpdateProductDto) {
     const product = await this.findOne(id);
-    const { name, description, price, stock, categoryId } = update;
+    const { name, description, price, categoryId } = update;
 
     // Verify category
     if (categoryId) {
@@ -194,9 +194,6 @@ export class ProductsService {
 
     if (price) {
       product.price = price;
-    }
-    if (stock) {
-      product.stock = stock;
     }
 
     return await this.productRepository.save(product);

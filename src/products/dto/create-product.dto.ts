@@ -29,11 +29,6 @@ export class CreateProductDto {
   @IsPositive()
   price!: number;
 
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  stock!: number;
-
   @IsUUID()
   categoryId!: string;
 }
