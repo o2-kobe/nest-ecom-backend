@@ -23,11 +23,7 @@ export class ProductsService {
   ) {}
 
   // Create
-  async create(dto: CreateProductDto, userRole: UserRole): Promise<Product> {
-    if (userRole !== UserRole.ADMIN) {
-      throw new ForbiddenException('Insufficient permission');
-    }
-
+  async create(dto: CreateProductDto): Promise<Product> {
     const category = await this.categoryService.findOne(dto.categoryId);
 
     if (!category) {
@@ -45,7 +41,7 @@ export class ProductsService {
 
   //  FIND ALL
   async findAll(query: ProductQueryDto, userRole: UserRole | 'GUEST') {
-    const { page, search, limit, category, sort } = query;
+    const { page, search, limit, category, sort, minPrice, maxPrice } = query;
 
     const skip = (page - 1) * limit;
 
@@ -70,6 +66,14 @@ export class ProductsService {
 
     if (category) {
       qb.andWhere('category.slug = :category', { category });
+    }
+
+    if (typeof minPrice === 'number') {
+      qb.andWhere('product.price >= :minPrice', { minPrice });
+    }
+
+    if (typeof maxPrice === 'number') {
+      qb.andWhere('product.price <= :maxPrice', { maxPrice });
     }
 
     if (sort === 'price_asc') {
@@ -122,21 +126,13 @@ export class ProductsService {
   }
 
   // Soft Delete Product
-  async remove(id: string, userRole: UserRole): Promise<void> {
-    if (userRole !== UserRole.ADMIN) {
-      throw new ForbiddenException('Insufficient permissions');
-    }
-
+  async remove(id: string): Promise<void> {
     const product = await this.findOne(id);
 
     await this.productRepository.softRemove(product);
   }
 
-  async archiveProduct(id: string, userRole: UserRole) {
-    if (userRole !== UserRole.ADMIN) {
-      throw new ForbiddenException('Insufficient permissions');
-    }
-
+  async archiveProduct(id: string) {
     const result = await this.productRepository.update(id, {
       isActive: false,
     });
@@ -149,11 +145,7 @@ export class ProductsService {
   }
 
   // Restore Archived Product
-  async restoreAchivedProduct(id: string, userRole: UserRole) {
-    if (userRole !== UserRole.ADMIN) {
-      throw new ForbiddenException('Insufficient permissions');
-    }
-
+  async restoreArchivedProduct(id: string) {
     const result = await this.productRepository.update(id, {
       isActive: true,
     });
@@ -166,11 +158,7 @@ export class ProductsService {
   }
 
   // Restore deleted products
-  async restoreDeletedProduct(id: string, userRole: UserRole) {
-    if (userRole !== UserRole.ADMIN) {
-      throw new ForbiddenException('Insufficient permission');
-    }
-
+  async restoreDeletedProduct(id: string) {
     const result = await this.productRepository.restore(id);
 
     if (!result.affected) {
@@ -181,19 +169,7 @@ export class ProductsService {
   }
 
   // Update Product
-  async updateProduct({
-    id,
-    update,
-    userRole,
-  }: {
-    id: string;
-    update: UpdateProductDto;
-    userRole: UserRole;
-  }) {
-    if (userRole !== UserRole.ADMIN) {
-      throw new ForbiddenException('Insufficient permissions.');
-    }
-
+  async updateProduct(id: string, update: UpdateProductDto) {
     const product = await this.findOne(id);
     const { name, description, price, stock, categoryId } = update;
 
@@ -205,11 +181,10 @@ export class ProductsService {
         throw new NotFoundException('Selected category does not exist');
       }
 
-      product.category.id = categoryId;
+      product.category = category;
     }
 
     if (name) {
-      product.slug = this.generateSlug(name);
       product.name = name;
     }
 
@@ -270,6 +245,34 @@ export class ProductsService {
       .take(limit);
 
     return await qb.getMany();
+  }
+
+  async findFeaturedProducts(limit = 10) {
+    const qb = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .where('product.isActive = :isActive', { isActive: true });
+
+    // Sort highest viewed
+    qb.orderBy('product.viewCount', 'DESC');
+
+    // Break ties with which ones were created first
+    qb.addOrderBy('product.createdAt', 'DESC');
+
+    qb.take(limit);
+
+    return await qb.getMany();
+  }
+
+  async incrementViewCount(id?: string, slug?: string): Promise<void> {
+    const key = id ? 'id' : 'slug';
+    const value = id || slug;
+
+    if (!value) {
+      return;
+    }
+
+    await this.productRepository.increment({ [key]: value }, 'viewCount', 1);
   }
 
   private generateSlug(productName: string) {
