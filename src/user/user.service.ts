@@ -22,7 +22,7 @@ export class UserService {
     private readonly addressService: AddressService,
   ) {}
 
-  async createUser(dto: CreateUserDto, role: UserRole): Promise<User> {
+  async createUser(dto: CreateUserDto, role: UserRole): Promise<Partial<User>> {
     const email = dto.email.trim().toLowerCase();
 
     const existingUser = await this.findByEmail(email);
