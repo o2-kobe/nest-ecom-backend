@@ -41,6 +41,9 @@ export class Product {
   })
   category!: Category;
 
+  @Column({ default: 0 })
+  viewCount!: number;
+
   @Column({ default: true })
   isActive!: boolean;
 
