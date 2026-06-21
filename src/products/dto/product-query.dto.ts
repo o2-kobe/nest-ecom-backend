@@ -5,6 +5,7 @@ import {
   Max,
   IsString,
   IsNumber,
+  IsIn,
 } from 'class-validator';
 
 import { Type } from 'class-transformer';
@@ -41,5 +42,7 @@ export class ProductQueryDto {
   maxPrice?: number;
 
   @IsOptional()
+  @IsString()
+  @IsIn(['price_asc', 'price_desc', 'newest'])
   sort?: string;
 }
