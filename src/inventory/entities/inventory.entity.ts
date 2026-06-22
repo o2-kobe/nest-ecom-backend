@@ -26,7 +26,7 @@ export class Inventory {
   @Column({ default: 0 })
   reservedQuantity!: number;
 
-  @Column({ default: 5 })
+  @Column({ default: 1 })
   lowStockThreshold!: number;
 
   @CreateDateColumn()
