@@ -1,18 +1,15 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import slugify from 'slugify';
-import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
+import slugify from 'slugify';
+import crypto from 'crypto';
+import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CategoryService } from '../category/category.service';
-import crypto from 'crypto';
 import { UserRole } from '../user/entities/user.entity';
 import { ProductQueryDto } from './dto/product-query.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { InventoryService } from '../inventory/inventory.service';
 
 @Injectable()
 export class ProductsService {
@@ -20,23 +17,42 @@ export class ProductsService {
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     private readonly categoryService: CategoryService,
+    private readonly inventoryService: InventoryService,
   ) {}
 
-  // Create
+  // Create New Product
   async create(dto: CreateProductDto): Promise<Product> {
-    const category = await this.categoryService.findOne(dto.categoryId);
+    const {
+      name,
+      description,
+      price,
+      categoryId,
+      quantity,
+      lowStockThreshold,
+    } = dto;
+
+    const category = await this.categoryService.findOne(categoryId);
 
     if (!category) {
       throw new NotFoundException(`Selected category does not exist.`);
     }
 
-    const product = this.productRepository.create({
-      ...dto,
-      slug: this.generateSlug(dto.name),
-      category: { id: dto.categoryId },
+    const product = await this.productRepository.save(
+      this.productRepository.create({
+        name,
+        description,
+        price,
+        slug: this.generateSlug(dto.name),
+        category: { id: dto.categoryId },
+      }),
+    );
+
+    await this.inventoryService.create(product.id, {
+      quantity,
+      lowStockThreshold,
     });
 
-    return await this.productRepository.save(product);
+    return await this.findOne(product.id);
   }
 
   //  FIND ALL
@@ -47,7 +63,8 @@ export class ProductsService {
 
     const qb = this.productRepository
       .createQueryBuilder('product')
-      .leftJoinAndSelect('product.category', 'category');
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.inventory', 'inventory');
 
     if (userRole !== UserRole.ADMIN) {
       qb.andWhere('product.isActive = :isActive', {
@@ -206,7 +223,9 @@ export class ProductsService {
     const qb = this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.inventory', 'inventory')
       .where('product.id != :id', { id: productId })
+      .andWhere('inventory.quantity > 0')
       .andWhere('product.isActive = :isActive', { isActive: true });
 
     qb.addSelect(
