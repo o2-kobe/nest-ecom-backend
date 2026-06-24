@@ -8,9 +8,11 @@ import {
   ManyToOne,
   Index,
   OneToOne,
+  OneToMany,
 } from 'typeorm';
 import { Category } from '../../category/entities/category.entity';
 import { Inventory } from '../../inventory/entities/inventory.entity';
+import { CartItem } from '../../cart/entities/cartItem.entity';
 
 @Entity()
 export class Product {
@@ -48,6 +50,9 @@ export class Product {
 
   @OneToOne(() => Inventory, (inventory) => inventory.product)
   inventory!: Inventory;
+
+  @OneToMany(() => CartItem, (item) => item.product)
+  cartItems!: CartItem[];
 
   @DeleteDateColumn({ nullable: true })
   deletedAt!: Date | null;

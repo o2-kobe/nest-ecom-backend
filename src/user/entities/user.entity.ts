@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Address } from '../../address/entities/address.entity';
+import { Cart } from '../../cart/entities/cart.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -58,6 +59,9 @@ export class User {
   @OneToOne(() => Address, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn()
   defaultAddress!: Address | null;
+
+  @OneToOne(() => Cart, (cart) => cart.user)
+  cart!: Cart;
 
   @CreateDateColumn()
   createdAt!: Date;
