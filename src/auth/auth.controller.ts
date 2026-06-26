@@ -7,14 +7,22 @@ import { User } from '../user/entities/user.entity';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { type Response } from 'express';
+import { CartService } from '../cart/cart.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly cartService: CartService,
+  ) {}
 
   @Post('register')
-  register(@Body() dto: CreateUserDto) {
-    return this.authService.register(dto);
+  async register(@Body() dto: CreateUserDto) {
+    const result = await this.authService.register(dto);
+
+    await this.cartService.createUserCart(result.user.id!);
+
+    return result;
   }
 
   @Post('login')
@@ -49,6 +57,8 @@ export class AuthController {
   ) {
     const tokens = await this.authService.issueTokens(user);
     this.authService.setAuthCookies(res, tokens);
+
+    await this.cartService.createUserCart(user.id);
 
     return {
       user,
