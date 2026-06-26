@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Cart } from './entities/cart.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,7 +15,6 @@ export class CartService {
     private readonly productService: ProductsService,
   ) {}
 
-  // TODO: USERcreation triggers cart creation
   async addItem(userId: string, dto: AddCartItemDto) {
     const cart = await this.findUserCart(userId);
 
@@ -56,18 +55,36 @@ export class CartService {
 
     return cart;
   }
+
+  async createUserCart(userId: string) {
+    return await this.cartRepository.save(
+      this.cartRepository.create({ user: { id: userId } }),
+    );
+  }
+
+  async removeItem(userId: string, itemId: string) {
+    const cartItem = await this.cartItemRepository.findOne({
+      where: { id: itemId, cart: { user: { id: userId } } },
+      relations: ['cart'],
+    });
+
+    if (!cartItem) {
+      throw new NotFoundException('Cart item not found');
+    }
+
+    await this.cartItemRepository.remove(cartItem);
+  }
+
+  async clearCart(userId: string) {
+    const cart = await this.cartRepository.findOne({
+      where: { user: { id: userId } },
+    });
+
+    if (!cart) {
+      throw new NotFoundException('User cart not found');
+    }
+
+    cart.items = [];
+    return await this.cartRepository.save(cart);
+  }
 }
-
-/**
-getUserCart(userId)
-
-addItem(userId, dto)
-
-updateItemQuantity(userId, itemId, quantity)
-
-removeItem(userId, itemId)
-
-clearCart(userId)
-
-calculateTotal(userId)
- */
