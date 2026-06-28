@@ -12,6 +12,7 @@ import { AuthProvider, User, UserRole } from './entities/user.entity';
 import { QueryFailedError, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AddressService } from '../address/address.service';
+import { CartService } from '../cart/cart.service';
 
 type PostgresError = QueryFailedError & { code?: string };
 
@@ -20,6 +21,7 @@ export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly addressService: AddressService,
+    private readonly cartService: CartService,
   ) {}
 
   async createUser(dto: CreateUserDto, role: UserRole): Promise<Partial<User>> {
@@ -45,6 +47,7 @@ export class UserService {
 
     try {
       savedUser = await this.userRepository.save(newUser);
+      await this.cartService.createUserCart(savedUser.id);
     } catch (error: unknown) {
       const err = error as PostgresError;
 
@@ -80,7 +83,10 @@ export class UserService {
     });
 
     try {
-      return await this.userRepository.save(newUser);
+      const savedUser = await this.userRepository.save(newUser);
+      await this.cartService.createUserCart(savedUser.id);
+
+      return savedUser;
     } catch (error) {
       const dbError = error as { code?: string; message?: string };
 

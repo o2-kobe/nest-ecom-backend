@@ -9,14 +9,12 @@ import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { PassportModule } from '@nestjs/passport';
 import { UserModule } from '../user/user.module';
-import { CartModule } from '../cart/cart.module';
 
 @Module({
   imports: [
     forwardRef(() => UserModule),
     JwtModule.register({}),
     PassportModule,
-    CartModule,
   ],
   providers: [
     AuthService,
