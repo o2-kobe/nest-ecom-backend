@@ -22,6 +22,8 @@ import { CartItem } from './cart/entities/cartItem.entity';
 import { OrderModule } from './order/order.module';
 import { CouponModule } from './coupon/coupon.module';
 import { Coupon } from './coupon/entities/coupon.entity';
+import { Order } from './order/entities/order.entity';
+import { OrderItem } from './order/entities/orderItem.entity';
 
 @Module({
   imports: [
@@ -46,6 +48,8 @@ import { Coupon } from './coupon/entities/coupon.entity';
         Cart,
         CartItem,
         Coupon,
+        Order,
+        OrderItem,
       ],
       synchronize: true, // Remove during prod
     }),

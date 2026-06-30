@@ -13,6 +13,7 @@ import {
 import { Category } from '../../category/entities/category.entity';
 import { Inventory } from '../../inventory/entities/inventory.entity';
 import { CartItem } from '../../cart/entities/cartItem.entity';
+import { OrderItem } from '../../order/entities/orderItem.entity';
 
 @Entity()
 export class Product {
@@ -53,6 +54,9 @@ export class Product {
 
   @OneToMany(() => CartItem, (item) => item.product)
   cartItems!: CartItem[];
+
+  @OneToMany(() => OrderItem, (item) => item.product)
+  orderItems!: OrderItem[];
 
   @DeleteDateColumn({ nullable: true })
   deletedAt!: Date | null;

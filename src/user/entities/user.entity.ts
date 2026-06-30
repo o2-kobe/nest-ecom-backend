@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Address } from '../../address/entities/address.entity';
 import { Cart } from '../../cart/entities/cart.entity';
+import { Order } from '../../order/entities/order.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -62,6 +63,9 @@ export class User {
 
   @OneToOne(() => Cart, (cart) => cart.user)
   cart!: Cart;
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders!: Order[];
 
   @CreateDateColumn()
   createdAt!: Date;

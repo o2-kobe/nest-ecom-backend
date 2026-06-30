@@ -3,9 +3,11 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Order } from '../../order/entities/order.entity';
 
 export enum DiscountType {
   PERCENTAGE,
@@ -45,6 +47,9 @@ export class Coupon {
 
   @Column({ type: 'timestamp' })
   expiresAt!: Date;
+
+  @OneToOne(() => Order, (order) => order.coupon)
+  order!: Order;
 
   @CreateDateColumn()
   createdAt!: Date;
