@@ -1,10 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Cart } from './entities/cart.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CartItem } from './entities/cartItem.entity';
 import { AddCartItemDto } from './dto/addCartItem.dto';
 import { ProductsService } from '../products/products.service';
+import { InventoryService } from '../inventory/inventory.service';
 
 @Injectable()
 export class CartService {
@@ -13,23 +18,29 @@ export class CartService {
     @InjectRepository(CartItem)
     private readonly cartItemRepository: Repository<CartItem>,
     private readonly productService: ProductsService,
+    private readonly inventoryService: InventoryService,
   ) {}
 
   async addItem(userId: string, dto: AddCartItemDto) {
-    const cart = await this.findUserCart(userId);
+    const [cart, product, productInventory] = await Promise.all([
+      this.findUserCart(userId),
+      this.productService.findOne(dto.productId),
+      this.inventoryService.findByProduct(dto.productId),
+    ]);
 
-    const product = await this.productService.findOne(dto.productId);
+    const existingItem = await this.findCartItem(cart.id, product.id);
 
-    const existingItem = await this.cartItemRepository.findOne({
-      where: {
-        cart: { id: cart.id },
-        product: { id: product.id },
-      },
-    });
+    const availableStock =
+      productInventory.quantity - productInventory.reservedQuantity;
+    const currentQuantity = existingItem ? existingItem.quantity : 0;
+    const totalRequestedQuantity = currentQuantity + dto.quantity;
+
+    if (totalRequestedQuantity > availableStock) {
+      throw new BadRequestException('Not enough stock available');
+    }
 
     if (existingItem) {
-      existingItem.quantity += dto.quantity;
-
+      existingItem.quantity = totalRequestedQuantity;
       return this.cartItemRepository.save(existingItem);
     }
 
@@ -86,5 +97,20 @@ export class CartService {
 
     cart.items = [];
     return await this.cartRepository.save(cart);
+  }
+
+  private async findCartItem(cartId: string, productId: string) {
+    const cartItem = await this.cartItemRepository.findOne({
+      where: {
+        cart: { id: cartId },
+        product: { id: productId },
+      },
+    });
+
+    if (!cartItem) {
+      throw new NotFoundException('CartItem not found');
+    }
+
+    return cartItem;
   }
 }
