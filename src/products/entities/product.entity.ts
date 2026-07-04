@@ -14,6 +14,7 @@ import { Category } from '../../category/entities/category.entity';
 import { Inventory } from '../../inventory/entities/inventory.entity';
 import { CartItem } from '../../cart/entities/cartItem.entity';
 import { OrderItem } from '../../order/entities/orderItem.entity';
+import { Review } from '../../review/entities/review.entity';
 
 @Entity()
 export class Product {
@@ -57,6 +58,9 @@ export class Product {
 
   @OneToMany(() => OrderItem, (item) => item.product)
   orderItems!: OrderItem[];
+
+  @OneToMany(() => Review, (review) => review.product)
+  reviews!: Review[];
 
   @DeleteDateColumn({ nullable: true })
   deletedAt!: Date | null;

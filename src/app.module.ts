@@ -24,10 +24,11 @@ import { CouponModule } from './coupon/coupon.module';
 import { Coupon } from './coupon/entities/coupon.entity';
 import { Order } from './order/entities/order.entity';
 import { OrderItem } from './order/entities/orderItem.entity';
+import { ReviewModule } from './review/review.module';
+import { Review } from './review/entities/review.entity';
 
 @Module({
   imports: [
-    /* Using secrets or configuration values in app */
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -50,6 +51,7 @@ import { OrderItem } from './order/entities/orderItem.entity';
         Coupon,
         Order,
         OrderItem,
+        Review,
       ],
       synchronize: true, // Remove during prod
     }),
@@ -88,6 +90,8 @@ import { OrderItem } from './order/entities/orderItem.entity';
     OrderModule,
 
     CouponModule,
+
+    ReviewModule,
   ],
   controllers: [AppController],
   providers: [AppService],

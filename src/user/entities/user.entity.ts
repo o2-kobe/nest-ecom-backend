@@ -11,6 +11,7 @@ import {
 import { Address } from '../../address/entities/address.entity';
 import { Cart } from '../../cart/entities/cart.entity';
 import { Order } from '../../order/entities/order.entity';
+import { Review } from '../../review/entities/review.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -66,6 +67,9 @@ export class User {
 
   @OneToMany(() => Order, (order) => order.user)
   orders!: Order[];
+
+  @OneToMany(() => Review, (review) => review.user)
+  reviews!: Review[];
 
   @CreateDateColumn()
   createdAt!: Date;
