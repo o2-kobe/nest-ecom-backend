@@ -6,6 +6,9 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  Index,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Address } from '../../address/entities/address.entity';
@@ -28,6 +31,10 @@ export enum OrderStatus {
 export class Order {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Index()
+  @Column({ unique: true })
+  orderCode!: string;
 
   @ManyToOne(() => User, (user) => user.orders)
   user!: User;
@@ -55,4 +62,10 @@ export class Order {
     scale: 2,
   })
   totalAmount!: number;
+
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
 }

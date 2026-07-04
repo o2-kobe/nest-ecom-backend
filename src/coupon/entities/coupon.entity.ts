@@ -12,7 +12,6 @@ import { Order } from '../../order/entities/order.entity';
 export enum DiscountType {
   PERCENTAGE,
   FIXED_AMOUNT,
-  FREE_SHIPPING,
 }
 
 @Entity()
