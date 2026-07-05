@@ -24,7 +24,7 @@ export class Review {
   rating!: number;
 
   @Column({ type: 'text', nullable: true })
-  comment!: string;
+  comment!: string | null;
 
   @ManyToOne(() => User, (user) => user.reviews, { onDelete: 'CASCADE' })
   user!: User;
