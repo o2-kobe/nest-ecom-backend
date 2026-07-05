@@ -10,6 +10,7 @@ import { UserRole } from '../user/entities/user.entity';
 import { ProductQueryDto } from './dto/product-query.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InventoryService } from '../inventory/inventory.service';
+import { ReviewService } from '../review/review.service';
 
 @Injectable()
 export class ProductsService {
@@ -18,6 +19,7 @@ export class ProductsService {
     private readonly productRepository: Repository<Product>,
     private readonly categoryService: CategoryService,
     private readonly inventoryService: InventoryService,
+    private readonly reviewService: ReviewService,
   ) {}
 
   // Create New Product
@@ -112,6 +114,15 @@ export class ProductsService {
       total,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  // Find product with reviews information
+  async findProductWithReviewInfo(id: string) {
+    const product = await this.findOne(id);
+
+    const reviewData = await this.reviewService.calculateAverageRating(id);
+
+    return { ...product, ...reviewData };
   }
 
   // Find Product by id

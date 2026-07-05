@@ -52,7 +52,7 @@ export class ProductsController {
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ): Promise<Product> {
     await this.productsService.incrementViewCount(id);
-    return this.productsService.findOne(id);
+    return this.productsService.findProductWithReviewInfo(id);
   }
 
   @Get('slug/:slug')
