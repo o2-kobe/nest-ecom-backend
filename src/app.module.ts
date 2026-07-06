@@ -26,6 +26,9 @@ import { Order } from './order/entities/order.entity';
 import { OrderItem } from './order/entities/orderItem.entity';
 import { ReviewModule } from './review/review.module';
 import { Review } from './review/entities/review.entity';
+import { EventModule } from './event/event.module';
+import { QueueModule } from './queue/queue.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -92,6 +95,12 @@ import { Review } from './review/entities/review.entity';
     CouponModule,
 
     ReviewModule,
+
+    EventModule,
+
+    QueueModule,
+
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
