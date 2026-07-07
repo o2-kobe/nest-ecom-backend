@@ -159,4 +159,28 @@ export class EmailService {
 
     return data;
   }
+
+  async sendWelcomeEmail(to: string, name: string) {
+    const subject = 'Welcome to LK-Stores!';
+
+    const message = `
+      <p>Hi <strong>${name}</strong>,</p>
+
+      <p>
+        Thank you for creating an account with <strong>LK-Stores</strong>.
+        We're delighted to have you join our community.
+      </p>
+
+      <p>
+        Your account has been successfully created. You can now browse our
+        products, manage your cart, and place orders with ease.
+      </p>
+
+      <p>
+        We hope you enjoy shopping with us!
+      </p>
+    `;
+
+    return this.sendMail(to, subject, message);
+  }
 }

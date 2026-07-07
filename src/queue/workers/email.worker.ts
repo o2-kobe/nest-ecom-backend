@@ -5,8 +5,7 @@ import { Logger } from '@nestjs/common';
 
 interface EmailJobData {
   to: string;
-  subject: string;
-  message: string;
+  fullName: string;
 }
 
 @Processor('email', { concurrency: 2 })
@@ -18,11 +17,11 @@ export class EmailProcessor extends WorkerHost {
   private readonly logger = new Logger(EmailProcessor.name);
 
   async process(job: Job<EmailJobData>) {
-    const { to, subject, message } = job.data;
+    const { to, fullName } = job.data;
 
     switch (job.name) {
       case 'welcome-email':
-        return this.emailService.sendMail(to, subject, message);
+        return this.emailService.sendWelcomeEmail(to, fullName);
       default:
         throw new Error(`No handler found for ${job.name}`);
     }

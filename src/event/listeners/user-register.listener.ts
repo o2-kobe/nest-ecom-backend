@@ -16,7 +16,10 @@ export class UserRegisteredListener {
 
     await this.emailQueue.add(
       'welcome-email',
-      { email, fullName },
+      {
+        to: email,
+        fullName,
+      },
       {
         attempts: 3,
         backoff: {

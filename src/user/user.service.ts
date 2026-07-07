@@ -13,6 +13,7 @@ import { QueryFailedError, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AddressService } from '../address/address.service';
 import { CartService } from '../cart/cart.service';
+import { UserEventsService } from '../event/user-events.service';
 
 type PostgresError = QueryFailedError & { code?: string };
 
@@ -20,6 +21,7 @@ type PostgresError = QueryFailedError & { code?: string };
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private readonly userEventsService: UserEventsService,
     private readonly addressService: AddressService,
     private readonly cartService: CartService,
   ) {}
@@ -47,6 +49,11 @@ export class UserService {
 
     try {
       savedUser = await this.userRepository.save(newUser);
+
+      // Emit user registered event
+      this.userEventsService.emitUserRegistered({ email, firstName, lastName });
+
+      // Create user cart
       await this.cartService.createUserCart(savedUser.id);
     } catch (error: unknown) {
       const err = error as PostgresError;
@@ -84,6 +91,11 @@ export class UserService {
 
     try {
       const savedUser = await this.userRepository.save(newUser);
+
+      // Emit user registered event
+      this.userEventsService.emitUserRegistered({ email, firstName, lastName });
+
+      // Create new cart for user
       await this.cartService.createUserCart(savedUser.id);
 
       return savedUser;
