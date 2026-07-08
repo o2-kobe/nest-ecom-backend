@@ -8,6 +8,7 @@ import { Inventory } from './entities/inventory.entity';
 import { Repository } from 'typeorm';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
+import { OrderItem } from '../order/entities/orderItem.entity';
 
 @Injectable()
 export class InventoryService {
@@ -108,6 +109,18 @@ export class InventoryService {
       .andWhere('inventory.quantity <= inventory.lowStockThreshold')
       .getMany();
   }
-}
 
-// Can explore a cron job that emits events when inventory is lowstock
+  async deductStock(items: OrderItem[]) {
+    const inventories: Inventory[] = [];
+
+    for (const item of items) {
+      const inventory = await this.findByProduct(item.productId);
+
+      inventory.quantity -= item.quantity;
+
+      inventories.push(inventory);
+    }
+
+    await this.inventoryRepository.save(inventories);
+  }
+}
