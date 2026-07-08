@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { RESEND_CLIENT } from './provider/resend.provider';
 import { Resend } from 'resend';
+import { Order } from '../order/entities/order.entity';
 
 @Injectable()
 export class EmailService {
@@ -182,5 +183,121 @@ export class EmailService {
     `;
 
     return this.sendMail(to, subject, message);
+  }
+
+  async sendOrderConfirmationEmail(order: Order) {
+    const subject = `Order Confirmation - ${order.orderCode}`;
+
+    const message = `
+  <p style="margin: 0 0 18px 0;">
+    Hi <strong>${order.user.firstName}</strong>,
+  </p>
+
+  <p style="margin: 0 0 18px 0;">
+    Thank you for shopping with <strong>LK-Stores</strong>! We're pleased to let you know that we've successfully received your order.
+  </p>
+
+  <table
+    width="100%"
+    cellpadding="12"
+    cellspacing="0"
+    style="
+      border:1px solid #e2e8f0;
+      border-radius:8px;
+      margin:24px 0;
+      border-collapse:collapse;
+      background:#f8fafc;
+    "
+  >
+    <tr>
+      <td style="font-weight:bold; width:40%;">Order Number</td>
+      <td>${order.orderCode}</td>
+    </tr>
+
+    <tr>
+      <td style="font-weight:bold;">Order Date</td>
+      <td>${order.createdAt.toLocaleDateString()}</td>
+    </tr>
+
+    <tr>
+      <td style="font-weight:bold;">Delivery Address</td>
+      <td>
+        ${order.address.street},
+        ${order.address.city},
+        ${order.address.country}
+      </td>
+    </tr>
+
+    <tr>
+      <td style="font-weight:bold;">Total Amount</td>
+      <td><strong>GH₵ ${order.totalAmount.toFixed(2)}</strong></td>
+    </tr>
+  </table>
+
+  <h3 style="color:#031B4E; margin-bottom:12px;">
+    Order Summary
+  </h3>
+
+  <table
+    width="100%"
+    cellpadding="10"
+    cellspacing="0"
+    style="border-collapse:collapse;"
+  >
+    <thead>
+      <tr style="background:#031B4E; color:white;">
+        <th align="left">Product</th>
+        <th align="center">Qty</th>
+        <th align="right">Price</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      ${order.items
+        .map(
+          (item) => `
+            <tr>
+              <td style="border-bottom:1px solid #e2e8f0;">
+                ${item.product.name}
+              </td>
+
+              <td
+                align="center"
+                style="border-bottom:1px solid #e2e8f0;"
+              >
+                ${item.quantity}
+              </td>
+
+              <td
+                align="right"
+                style="border-bottom:1px solid #e2e8f0;"
+              >
+                GH₵ ${Number(item.price).toFixed(2)}
+              </td>
+            </tr>
+          `,
+        )
+        .join('')}
+    </tbody>
+  </table>
+
+  <p style="margin-top:28px;">
+    Your invoice has been attached to this email as a PDF for your records.
+  </p>
+
+  <p>
+    Our team will begin processing your order shortly. We'll notify you again once your order has been prepared and is ready for shipment or collection.
+  </p>
+
+  <p>
+    If you have any questions regarding your order, feel free to contact our support team—we're always happy to help.
+  </p>
+
+  <p style="margin-top:30px;">
+    Thank you once again for choosing <strong>LK-Stores</strong>. We appreciate your business and look forward to serving you again.
+  </p>
+`;
+
+    return this.sendMail(order.user.email, subject, message);
   }
 }
