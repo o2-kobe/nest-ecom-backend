@@ -13,7 +13,7 @@ import { QueryFailedError, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AddressService } from '../address/address.service';
 import { CartService } from '../cart/cart.service';
-import { UserEventsService } from '../event/user-events.service';
+import { UserEventsService } from '../event/service/user-events.service';
 
 type PostgresError = QueryFailedError & { code?: string };
 
