@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { UserEventsService } from './user-events.service';
+import { UserEventsService } from './service/user-events.service';
 import { UserRegisteredListener } from './listeners/user-register.listener';
 import { QueueModule } from '../queue/queue.module';
+import { OrderEventService } from './service/order-events.service';
+import { OrderPlacedListener } from './listeners/order-placed.listener';
 
 @Module({
   imports: [
@@ -14,6 +16,12 @@ import { QueueModule } from '../queue/queue.module';
     }),
     QueueModule,
   ],
-  providers: [UserEventsService, UserRegisteredListener],
+  providers: [
+    UserEventsService,
+    UserRegisteredListener,
+    OrderEventService,
+    OrderPlacedListener,
+  ],
+  exports: [UserEventsService, OrderEventService],
 })
 export class EventModule {}

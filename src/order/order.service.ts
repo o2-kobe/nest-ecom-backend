@@ -13,6 +13,7 @@ import { Coupon, DiscountType } from '../coupon/entities/coupon.entity';
 import { CartItem } from '../cart/entities/cartItem.entity';
 import { Inventory } from '../inventory/entities/inventory.entity';
 import { customAlphabet } from 'nanoid';
+import { OrderEventService } from '../event/service/order-events.service';
 
 @Injectable()
 export class OrderService {
@@ -20,10 +21,9 @@ export class OrderService {
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
 
-    @InjectRepository(OrderItem)
-    private readonly orderItemRepository: Repository<OrderItem>,
-
     @InjectDataSource() private readonly dataSource: DataSource,
+
+    private readonly orderEventService: OrderEventService,
   ) {}
 
   async createOrder(userId: string, dto: CreateOrderDto): Promise<Order> {
@@ -50,7 +50,6 @@ export class OrderService {
         let rawTotal = 0;
         const orderItems: OrderItem[] = [];
 
-        // Loop through items to lock inventory, validate stock, and calculate prices
         for (const cartItem of cartItems) {
           // Pessimistic lock on the inventory row to prevent race conditions
           const inventory = await transactionalEntityManager.findOne(
@@ -134,11 +133,14 @@ export class OrderService {
         }
         await transactionalEntityManager.save(OrderItem, orderItems);
 
-        // Clean up: Delete the user's cart items
+        // Delete the user's cart items
         const userCart = cartItems[0].cart;
         await transactionalEntityManager.delete(CartItem, {
           cart: { id: userCart.id },
         });
+
+        // Emit Order placed event
+        this.orderEventService.emitOrderPlacedEvent(savedOrder);
 
         // Return the fully constructed and saved order object
         return savedOrder;
@@ -162,10 +164,50 @@ export class OrderService {
   }
 
   async findOrderById(id: string) {
-    const order = await this.orderRepository.findOneBy({ id });
+    const order = await this.orderRepository.findOne({
+      where: { id },
+      relations: {
+        user: true,
+        address: true,
+        items: {
+          product: true,
+        },
+      },
+      select: {
+        id: true,
+        orderCode: true,
+        createdAt: true,
+        status: true,
+        totalAmount: true,
+
+        user: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+
+        address: {
+          street: true,
+          city: true,
+          country: true,
+        },
+
+        items: {
+          id: true,
+          quantity: true,
+          price: true,
+
+          product: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
 
     if (!order) {
-      throw new NotFoundException('Order does not exist');
+      throw new NotFoundException('Order not found');
     }
 
     return order;
