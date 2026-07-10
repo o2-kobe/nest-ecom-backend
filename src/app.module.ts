@@ -29,6 +29,8 @@ import { Review } from './review/entities/review.entity';
 import { EventModule } from './event/event.module';
 import { QueueModule } from './queue/queue.module';
 import { EmailModule } from './email/email.module';
+import { AuditModule } from './audit/audit.module';
+import { AuditTrail } from './audit/entities/audit.entity';
 
 @Module({
   imports: [
@@ -55,6 +57,7 @@ import { EmailModule } from './email/email.module';
         Order,
         OrderItem,
         Review,
+        AuditTrail,
       ],
       synchronize: true, // Remove during prod
     }),
@@ -101,6 +104,8 @@ import { EmailModule } from './email/email.module';
     QueueModule,
 
     EmailModule,
+
+    AuditModule,
   ],
   controllers: [AppController],
   providers: [AppService],
