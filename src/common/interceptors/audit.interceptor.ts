@@ -45,7 +45,6 @@ export class AuditInterceptor implements NestInterceptor {
           userId: user.id,
           action: auditMethod,
           payload: body,
-          timestamp: new Date(),
         });
       }),
     );

@@ -5,6 +5,7 @@ import { OrderModule } from '../order/order.module';
 import { EmailProcessor } from './workers/email.processor';
 import { InventoryProcessor } from './workers/inventory.processor';
 import { InventoryModule } from '../inventory/inventory.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
@@ -18,13 +19,19 @@ import { InventoryModule } from '../inventory/inventory.module';
       },
     }),
 
-    BullModule.registerQueue({ name: 'email' }),
+    BullModule.registerQueue(
+      { name: 'email' },
+      { name: 'inventory' },
+      { name: 'audit' },
+    ),
 
     EmailModule,
 
     OrderModule,
 
     InventoryModule,
+
+    AuditModule,
   ],
   providers: [EmailProcessor, InventoryProcessor],
   exports: [BullModule],

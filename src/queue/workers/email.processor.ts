@@ -40,7 +40,7 @@ export class EmailProcessor extends WorkerHost {
 
   @OnWorkerEvent('active')
   onActive(job: Job) {
-    this.logger.log(`Job ${job.id} [${job.name}] is now ACTIVE`);
+    this.logger.log(`Job: ${job.name} [${job.name}] is now ACTIVE`);
   }
 
   @OnWorkerEvent('completed')
