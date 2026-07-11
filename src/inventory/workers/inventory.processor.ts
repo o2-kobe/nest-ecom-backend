@@ -1,7 +1,7 @@
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { OrderService } from '../../order/order.service';
-import { InventoryService } from '../../inventory/inventory.service';
+import { InventoryService } from '../inventory.service';
 import { Logger } from '@nestjs/common';
 
 interface InventoryJobData {

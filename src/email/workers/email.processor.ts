@@ -1,5 +1,5 @@
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { EmailService } from '../../email/email.service';
+import { EmailService } from '../email.service';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { OrderService } from '../../order/order.service';

@@ -1,6 +1,6 @@
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
-import { AuditService } from '../../audit/audit.service';
+import { AuditService } from '../audit.service';
 import { AuditActionType } from '../../common/decorator/audit-action.decorator';
 import { Logger } from '@nestjs/common';
 

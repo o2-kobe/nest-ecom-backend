@@ -10,5 +10,6 @@ import { AuthModule } from '../auth/auth.module';
   imports: [TypeOrmModule.forFeature([Order, OrderItem]), AuthModule],
   controllers: [OrderController],
   providers: [OrderService],
+  exports: [OrderService],
 })
 export class OrderModule {}
