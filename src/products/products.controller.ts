@@ -9,6 +9,7 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -21,6 +22,11 @@ import { ProductQueryDto } from './dto/product-query.dto';
 import { CurrentUser } from '../auth/decorator/current-user.decorator';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-auth.guard';
+import { AuditInterceptor } from '../common/interceptors/audit.interceptor';
+import {
+  AuditAction,
+  AuditActionType,
+} from '../common/decorator/audit-action.decorator';
 
 @Controller('products')
 export class ProductsController {
@@ -28,6 +34,8 @@ export class ProductsController {
 
   @Roles(UserRole.ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseInterceptors(AuditInterceptor)
+  @AuditAction(AuditActionType.CREATE_PRODUCT)
   @Post()
   async create(@Body() createProductDto: CreateProductDto): Promise<Product> {
     return this.productsService.create(createProductDto);
@@ -70,6 +78,8 @@ export class ProductsController {
 
   @Roles(UserRole.ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseInterceptors(AuditInterceptor)
+  @AuditAction(AuditActionType.DELETE_PRODUCT)
   @Delete(':id')
   deleteProduct(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.productsService.remove(id);
@@ -77,6 +87,8 @@ export class ProductsController {
 
   @Roles(UserRole.ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseInterceptors(AuditInterceptor)
+  @AuditAction(AuditActionType.ARCHIVE_PRODUCT)
   @Patch(':id/archive')
   archiveProduct(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.productsService.archiveProduct(id);
@@ -84,6 +96,8 @@ export class ProductsController {
 
   @Roles(UserRole.ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseInterceptors(AuditInterceptor)
+  @AuditAction(AuditActionType.RESTORE_ARCHIVED_PRODUCT)
   @Patch(':id/restore-archived')
   restoreArchivedProduct(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
@@ -93,6 +107,8 @@ export class ProductsController {
 
   @Roles(UserRole.ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseInterceptors(AuditInterceptor)
+  @AuditAction(AuditActionType.RESTORE_DELETED_PRODUCT)
   @Patch(':id/restore-deleted')
   restoreDeletedProduct(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
@@ -102,6 +118,8 @@ export class ProductsController {
 
   @Roles(UserRole.ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseInterceptors(AuditInterceptor)
+  @AuditAction(AuditActionType.UPDATE_PRODUCT)
   @Patch(':id')
   update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,

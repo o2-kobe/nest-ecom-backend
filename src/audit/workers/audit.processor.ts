@@ -24,7 +24,7 @@ export class AuditProcessor extends WorkerHost {
 
   @OnWorkerEvent('active')
   onActive(job: Job) {
-    this.logger.log(`Job: ${job.name} [${job.name}] is now ACTIVE`);
+    this.logger.log(`Job: ${job.name} is now ACTIVE`);
   }
 
   @OnWorkerEvent('completed')

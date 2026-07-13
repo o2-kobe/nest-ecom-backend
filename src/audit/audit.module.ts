@@ -5,13 +5,17 @@ import { AuditController } from './audit.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuditTrail } from './entities/audit.entity';
 import { AuditProcessor } from './workers/audit.processor';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([AuditTrail]),
+
     BullModule.registerQueue({
       name: 'audit',
     }),
+
+    AuthModule,
   ],
   providers: [AuditService, AuditProcessor],
   controllers: [AuditController],
